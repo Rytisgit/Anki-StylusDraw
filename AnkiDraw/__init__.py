@@ -1381,7 +1381,7 @@ def ts_change_pen2_color():
 @slot()
 def ts_change_pen3_color():
     """
-    Open color picker and set chosen color for Pen 1.
+    Open color picker and set chosen color for Pen 3.
     """
     global ts_pen3_color
     qcolor_old = QColor(ts_pen3_color)
@@ -1395,7 +1395,7 @@ def ts_change_pen3_color():
 @slot()
 def ts_change_pen4_color():
     """
-    Open color picker and set chosen color for Pen 2.
+    Open color picker and set chosen color for Pen 4.
     """
     global ts_pen4_color
     qcolor_old = QColor(ts_pen4_color)
