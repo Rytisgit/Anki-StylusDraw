@@ -22,7 +22,7 @@ Important parts of Javascript code inspired by http://creativejs.com/tutorials/p
 """
 
 __addon_name__ = "AnkiDraw"
-__version__ = "1.3"
+__version__ = "1.5"
 
 from pathlib import Path
 
@@ -221,22 +221,27 @@ def blackboard_html():
 
         <button id="ts_switch_pen1_button" class="active" title="Switch to Pen 1 (Alt + 1)"
               onclick="activate_pen1();" >
-        <svg stroke="currentColor" fill="none" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M13 20v-16l-5 5"></path></svg>
+        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M18.333 2c1.96 0 3.56 1.537 3.662 3.472l.005 .195v12.666c0 1.96 -1.537 3.56 -3.472 3.662l-.195 .005h-12.666a3.667 3.667 0 0 1 -3.662 -3.472l-.005 -.195v-12.666c0 -1.96 1.537 -3.56 3.472 -3.662l.195 -.005h12.666zm-5.339 5.886c-.083 -.777 -1.008 -1.16 -1.617 -.67l-.084 .077l-2 2l-.083 .094a1 1 0 0 0 0 1.226l.083 .094l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l.293 -.293v5.586l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-8l-.006 -.114z" /></svg>
         </button>
 
         <button id="ts_switch_pen2_button" class="active" title="Switch to Pen 2 (Alt + 2)"
               onclick="activate_pen2();" >
-        <svg stroke="currentColor" fill="none" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M8 8a4 4 0 1 1 8 0c0 1.098 -.564 2.025 -1.159 2.815l-6.841 9.185h8"></path></svg>
+        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M18.333 2c1.96 0 3.56 1.537 3.662 3.472l.005 .195v12.666c0 1.96 -1.537 3.56 -3.472 3.662l-.195 .005h-12.666a3.667 3.667 0 0 1 -3.662 -3.472l-.005 -.195v-12.666c0 -1.96 1.537 -3.56 3.472 -3.662l.195 -.005h12.666zm-5.333 5h-3l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h3v2h-2l-.15 .005a2 2 0 0 0 -1.844 1.838l-.006 .157v2l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h3l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007h-3v-2h2l.15 -.005a2 2 0 0 0 1.844 -1.838l.006 -.157v-2l-.005 -.15a2 2 0 0 0 -1.838 -1.844l-.157 -.006z" /></path></svg>
         </button>
 
         <button id="ts_switch_pen3_button" class="active" title="Switch to Pen 3 (Alt + 3)"
               onclick="activate_pen3();" >
-        <svg stroke="currentColor" fill="none" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 12a4 4 0 1 0 -4 -4"></path><path d="M8 16a4 4 0 1 0 4 -4"></path></svg>
+        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M18.333 2c1.96 0 3.56 1.537 3.662 3.472l.005 .195v12.666c0 1.96 -1.537 3.56 -3.472 3.662l-.195 .005h-12.666a3.667 3.667 0 0 1 -3.662 -3.472l-.005 -.195v-12.666c0 -1.96 1.537 -3.56 3.472 -3.662l.195 -.005h12.666zm-5.333 5h-2l-.15 .005a2 2 0 0 0 -1.85 1.995a1 1 0 0 0 1.974 .23l.02 -.113l.006 -.117h2v2h-2l-.133 .007c-1.111 .12 -1.154 1.73 -.128 1.965l.128 .021l.133 .007h2v2h-2l-.007 -.117a1 1 0 0 0 -1.993 .117a2 2 0 0 0 1.85 1.995l.15 .005h2l.15 -.005a2 2 0 0 0 1.844 -1.838l.006 -.157v-2l-.005 -.15a1.988 1.988 0 0 0 -.17 -.667l-.075 -.152l-.019 -.032l.02 -.03a2.01 2.01 0 0 0 .242 -.795l.007 -.174v-2l-.005 -.15a2 2 0 0 0 -1.838 -1.844l-.157 -.006z" /></svg>
         </button>
 
         <button id="ts_switch_pen4_button" class="active" title="Switch to Pen 4 (Alt + 4)"
               onclick="activate_pen4();" >
-        <svg stroke="currentColor" fill="none" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M15 20v-15l-8 11h10" ></path></svg>
+        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M18.333 2c1.96 0 3.56 1.537 3.662 3.472l.005 .195v12.666c0 1.96 -1.537 3.56 -3.472 3.662l-.195 .005h-12.666a3.667 3.667 0 0 1 -3.662 -3.472l-.005 -.195v-12.666c0 -1.96 1.537 -3.56 3.472 -3.662l.195 -.005h12.666zm-4.333 5a1 1 0 0 0 -.993 .883l-.007 .117v3h-2v-3l-.007 -.117a1 1 0 0 0 -1.986 0l-.007 .117v3l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h2v3l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-8l-.007 -.117a1 1 0 0 0 -.993 -.883z" /></svg>
+        </button>
+
+        <button id="ts_switch_pen4_button" class="active" title="Play Sound on card again (R)"
+              onclick="PlaySound();" >
+        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1 -2 2a8 8 0 0 0 -2 3a4.5 4.5 0 0 1 -6.8 1.4" /><path d="M10 10a3 3 0 1 1 5 2.2" /></svg>
         </button>
 
     </div>
@@ -439,7 +444,6 @@ var ts_visibility_button_path2 = document.querySelector('#ts_visibility_button >
 var ts_switch_pen1_button_path = document.querySelector('#ts_switch_pen1_button > svg > path');
 var ts_switch_pen2_button_path = document.querySelector('#ts_switch_pen2_button > svg > path');
 var ts_switch_pen3_button_path = document.querySelector('#ts_switch_pen3_button > svg > path');
-var ts_switch_pen3_button_path2 = document.querySelector('#ts_switch_pen3_button > svg > path:nth-child(2)');
 var ts_switch_pen4_button_path = document.querySelector('#ts_switch_pen4_button > svg > path');
 
 // Arrays to save point values from strokes
@@ -456,6 +460,10 @@ canvas.onselectstart = function() { return false; };
 secondary_canvas.onselectstart = function() { return false; };
 wrapper.onselectstart = function() { return false; };
 
+function PlaySound(){
+    var elem = document.querySelector(".soundLink, .replaybutton");
+    if (elem) { elem.click(); }
+}
 function recolor_based_on_active_pen()
 {   
     var color = getPenColorAndWidthByIndex(activePenIndex)[0]
@@ -466,7 +474,6 @@ function recolor_based_on_active_pen()
     ts_switch_pen1_button_path.style.stroke = pen1Color
     ts_switch_pen2_button_path.style.stroke = pen2Color
     ts_switch_pen3_button_path.style.stroke = pen3Color
-    ts_switch_pen3_button_path2.style.stroke = pen3Color
     ts_switch_pen4_button_path.style.stroke = pen4Color
 }
 
@@ -752,6 +759,49 @@ function ts_undo(){
     }
     
 }
+// function ts_undo(){
+//     stop_drawing();
+//     if (strokes_data.length < 1) return;
+    
+//     var undone_stroke = strokes_data.pop();
+//     redo_stack.push(undone_stroke);
+
+//     if (undone_stroke.tool === 'eraser' && undone_stroke.erasedIndices) {
+//         undone_stroke.erasedIndices.forEach(function(index) {
+//             if (strokes_data[index]) {
+//                 strokes_data[index].visible = true;
+//             }
+//         });
+//     }
+
+//     ts_redo_button.className = "active";
+//     ts_redraw();
+//     if (strokes_data.length === 0) {
+//         ts_undo_button.className = "";
+//     }
+// }
+// function ts_redo() {
+//     stop_drawing();
+//     if (redo_stack.length < 1) return;
+    
+//     var redone_stroke = redo_stack.pop();
+//     strokes_data.push(redone_stroke);
+
+//     if (redone_stroke.tool === 'eraser' && redone_stroke.erasedIndices) {
+//         redone_stroke.erasedIndices.forEach(function(index) {
+//             if (strokes_data[index]) {
+//                 strokes_data[index].visible = false;
+//             }
+//         });
+//     }
+
+//     ts_undo_button.className = "active";
+//     ts_redraw();
+//     if (redo_stack.length === 0) {
+//         ts_redo_button.className = "";
+//     }
+// }
+
 
 function ts_redraw() {
 	pleaseRedrawEverything = true;
@@ -1559,14 +1609,15 @@ def ts_change_auto_hide_pointer_settings():
 
 def checkProfile():
     if not ts_profile_loaded:
-        showWarning("No profile loaded")
+        showWarning("No profile loaded. AnkiPenDown may not work correctly.")
         return False
+    return True
 
 def ts_on():
     """
     Turn on
     """
-    checkProfile()
+    if not checkProfile(): return
 
     global ts_state_on
     ts_state_on = True
@@ -1577,7 +1628,7 @@ def ts_off():
     """
     Turn off
     """
-    checkProfile()
+    if not checkProfile(): return
 
     global ts_state_on
     ts_state_on = False
@@ -1589,21 +1640,16 @@ def ts_switch():
     """
     Switch AnkiDraw.
     """
-
     if ts_state_on:
         ts_off()
     else:
         ts_on()
-
-
     # Reload current screen.
-
     if mw.state == "review":
-        #mw.moveToState('overview')
-        mw.moveToState('review')
-    if mw.state == "deckBrowser":
+        mw.moveToState("review")
+    elif mw.state == "deckBrowser":
         mw.deckBrowser.refresh()
-    if mw.state == "overview":
+    elif mw.state == "overview":
         mw.overview.refresh()
 
 def ts_setup_menu():
