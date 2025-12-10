@@ -422,13 +422,13 @@ function getPenColorAndWidthByIndex(index){
             return [pen1Color, pen1Width];
         break;
         case 1:
-            return [pen2Color, pen2Width];
+            return [pen2Color, pen1Width];
         break;
         case 2:
-            return [pen3Color, pen3Width];
+            return [pen3Color, pen1Width];
         break;
         case 3:
-            return [pen4Color, pen4Width];
+            return [pen4Color, pen1Width];
         break;
         default:
             console.error("error too large index for pen selection")
