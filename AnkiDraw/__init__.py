@@ -1369,125 +1369,38 @@ def custom(*args, **kwargs):
 mw.reviewer.revHtml = custom
 
 @slot()
-def ts_change_pen1_color():
+def ts_change_pen_color(pen_number):
     """
-    Open color picker and set chosen color for Pen 1.
+    Open color picker and set chosen color for the specified pen.
     """
-    global ts_pen1_color
-    qcolor_old = QColor(ts_pen1_color)
+    # Get current color from global variable
+    current_color = globals()[f"ts_pen{pen_number}_color"]
+    qcolor_old = QColor(current_color)
     qcolor = QColorDialog.getColor(qcolor_old)
+    
     if qcolor.isValid():
-        ts_pen1_color = qcolor.name()
+        # Update the global variable
+        globals()[f"ts_pen{pen_number}_color"] = qcolor.name()
+        
         # Reload the reviewer to apply the new color
-        execute_js("pen1Color = '" + ts_pen1_color + "';")
+        execute_js(f"pen{pen_number}Color = '{qcolor.name()}';")
         execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
 
 @slot()
-def ts_change_pen2_color():
+def ts_change_pen_width(pen_number):
     """
-    Open color picker and set chosen color for Pen 2.
+    Open width picker and set chosen width for the specified pen.
     """
-    global ts_pen2_color
-    qcolor_old = QColor(ts_pen2_color)
-    qcolor = QColorDialog.getColor(qcolor_old)
-    if qcolor.isValid():
-        ts_pen2_color = qcolor.name()
-        # Reload the reviewer to apply the new color
-        execute_js("pen2Color = '" + ts_pen2_color + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen3_color():
-    """
-    Open color picker and set chosen color for Pen 3.
-    """
-    global ts_pen3_color
-    qcolor_old = QColor(ts_pen3_color)
-    qcolor = QColorDialog.getColor(qcolor_old)
-    if qcolor.isValid():
-        ts_pen3_color = qcolor.name()
-        # Reload the reviewer to apply the new color
-        execute_js("pen3Color = '" + ts_pen3_color + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen4_color():
-    """
-    Open color picker and set chosen color for Pen 4.
-    """
-    global ts_pen4_color
-    qcolor_old = QColor(ts_pen4_color)
-    qcolor = QColorDialog.getColor(qcolor_old)
-    if qcolor.isValid():
-        ts_pen4_color = qcolor.name()
-        # Reload the reviewer to apply the new color
-        execute_js("pen4Color = '" + ts_pen4_color + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen4_color():
-    """
-    Open color picker and set chosen color for Pen 4.
-    """
-    global ts_pen4_color
-    qcolor_old = QColor(ts_pen4_color)
-    qcolor = QColorDialog.getColor(qcolor_old)
-    if qcolor.isValid():
-        ts_pen4_color = qcolor.name()
-        # Reload the reviewer to apply the new color
-        execute_js("pen4Color = '" + ts_pen4_color + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen1_width():
-    """
-    Open width picker and set chosen width for Pen 1.
-    """
-    global ts_pen1_width
-    value, accepted = QInputDialog.getDouble(mw, "AnkiDraw", "Enter the pen 1 width:", ts_pen1_width)
+    # Get current width from global variable
+    current_width = globals()[f"ts_pen{pen_number}_width"]
+    value, accepted = QInputDialog.getDouble(mw, "AnkiDraw", f"Enter the pen {pen_number} width:", current_width)
+    
     if accepted:
-        ts_pen1_width = value
+        # Update the global variable
+        globals()[f"ts_pen{pen_number}_width"] = value
+        
         # Reload the reviewer to apply the new width
-        execute_js("pen1Width = '" + str(ts_pen1_width) + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen2_width():
-    """
-    Open width picker and set chosen width for Pen 2.
-    """
-    global ts_pen2_width
-    value, accepted = QInputDialog.getDouble(mw, "AnkiDraw", "Enter the pen 2 width:", ts_pen2_width)
-    if accepted:
-        ts_pen2_width = value
-        # Reload the reviewer to apply the new width
-        execute_js("pen2Width = '" + str(ts_pen2_width) + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen3_width():
-    """
-    Open width picker and set chosen width for Pen 3.
-    """
-    global ts_pen3_width
-    value, accepted = QInputDialog.getDouble(mw, "AnkiDraw", "Enter the pen 3 width:", ts_pen3_width)
-    if accepted:
-        ts_pen3_width = value
-        # Reload the reviewer to apply the new width
-        execute_js("pen3Width = '" + str(ts_pen3_width) + "';")
-        execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
-
-@slot()
-def ts_change_pen4_width():
-    """
-    Open width picker and set chosen width for Pen 4.
-    """
-    global ts_pen4_width
-    value, accepted = QInputDialog.getDouble(mw, "AnkiDraw", "Enter the pen4 width:", ts_pen4_width)
-    if accepted:
-        ts_pen4_width = value
-        # Reload the reviewer to apply the new width
-        execute_js("pen4Width = '" + str(ts_pen4_width) + "';")
+        execute_js(f"pen{pen_number}Width = '{value}';")
         execute_js("if (typeof update_pen_settings === 'function') { update_pen_settings(); }")
 
 @slot()
@@ -1805,14 +1718,14 @@ def ts_setup_menu():
     mw.addon_view_menu.addAction(ts_menu_opacity)
     mw.addon_view_menu.addAction(ts_toolbar_settings)
 
-    ts_menu_pen1_color.triggered.connect(ts_change_pen1_color)
-    ts_menu_pen2_color.triggered.connect(ts_change_pen2_color)
-    ts_menu_pen3_color.triggered.connect(ts_change_pen3_color)
-    ts_menu_pen4_color.triggered.connect(ts_change_pen4_color)
-    ts_menu_pen1_width.triggered.connect(ts_change_pen1_width)
-    ts_menu_pen2_width.triggered.connect(ts_change_pen2_width)
-    ts_menu_pen3_width.triggered.connect(ts_change_pen3_width)
-    ts_menu_pen4_width.triggered.connect(ts_change_pen4_width)
+    ts_menu_pen1_color.triggered.connect(lambda: ts_change_pen_color(1))
+    ts_menu_pen2_color.triggered.connect(lambda: ts_change_pen_color(2))
+    ts_menu_pen3_color.triggered.connect(lambda: ts_change_pen_color(3))
+    ts_menu_pen4_color.triggered.connect(lambda: ts_change_pen_color(4))
+    ts_menu_pen1_width.triggered.connect(lambda: ts_change_pen_width(1))
+    ts_menu_pen2_width.triggered.connect(lambda: ts_change_pen_width(2))
+    ts_menu_pen3_width.triggered.connect(lambda: ts_change_pen_width(3))
+    ts_menu_pen4_width.triggered.connect(lambda: ts_change_pen_width(4))
     ts_menu_switch.triggered.connect(ts_switch)
     ts_menu_dots.triggered.connect(ts_dots)
     ts_menu_auto_hide.triggered.connect(ts_change_auto_hide_settings)
