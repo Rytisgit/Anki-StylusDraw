@@ -54,6 +54,7 @@ ts_default_small_canvas = False
 ts_zen_mode = False
 ts_follow = False
 ts_ConvertDotStrokes = True
+ts_pressure_sensitivity = True
 
 ts_pen1_color = "#272828"
 ts_pen1_width = 4
@@ -99,6 +100,7 @@ def ts_save():
     mw.pm.profile['ts_default_small_canvas'] = ts_default_small_canvas
     mw.pm.profile['ts_zen_mode'] = ts_zen_mode
     mw.pm.profile['ts_follow'] = ts_follow
+    mw.pm.profile['ts_pressure_sensitivity'] = ts_pressure_sensitivity
     mw.pm.profile['ts_location'] = ts_location
     mw.pm.profile['ts_x_offset'] = ts_x_offset
     mw.pm.profile['ts_y_offset'] = ts_y_offset
@@ -112,7 +114,7 @@ def ts_load():
     Load configuration from profile, set states of checkable menu objects
     and turn on night mode if it were enabled on previous session.
     """
-    global ts_state_on, ts_pen1_color, ts_pen2_color, ts_pen3_color, ts_pen4_color, ts_profile_loaded, ts_pen1_width, ts_pen2_width, ts_pen3_width, ts_pen4_width, ts_opacity, ts_ConvertDotStrokes, ts_auto_hide, ts_auto_hide_pointer, ts_default_small_canvas, ts_zen_mode, ts_follow, ts_orient_vertical, ts_y_offset, ts_x_offset, ts_location, ts_small_width, ts_small_height, ts_background_color
+    global ts_state_on, ts_pen1_color, ts_pen2_color, ts_pen3_color, ts_pen4_color, ts_profile_loaded, ts_pen1_width, ts_pen2_width, ts_pen3_width, ts_pen4_width, ts_opacity, ts_ConvertDotStrokes, ts_auto_hide, ts_auto_hide_pointer, ts_default_small_canvas, ts_zen_mode, ts_follow, ts_orient_vertical, ts_y_offset, ts_x_offset, ts_location, ts_small_width, ts_small_height, ts_background_color, ts_pressure_sensitivity
     try:
         ts_state_on = mw.pm.profile['ts_state_on']
         ts_opacity = mw.pm.profile['ts_opacity']
@@ -121,6 +123,7 @@ def ts_load():
         ts_default_small_canvas = mw.pm.profile['ts_default_small_canvas']
         ts_zen_mode = mw.pm.profile['ts_zen_mode']
         ts_follow = mw.pm.profile['ts_follow']
+        ts_pressure_sensitivity = mw.pm.profile.get('ts_pressure_sensitivity', True)
         ts_ConvertDotStrokes = bool(mw.pm.profile['ts_default_ConvertDotStrokes'])#fix for previously being a string value, defaults string value to true bool, will be saved as true or false bool after
         ts_orient_vertical = mw.pm.profile['ts_orient_vertical']
         ts_y_offset = mw.pm.profile['ts_y_offset']
@@ -138,6 +141,7 @@ def ts_load():
         ts_default_small_canvas = False
         ts_zen_mode = False
         ts_follow = False
+        ts_pressure_sensitivity = True
         ts_ConvertDotStrokes = True
         ts_orient_vertical = True
         ts_y_offset = 2
@@ -154,9 +158,9 @@ def ts_load():
         ts_pen4_color = mw.pm.profile['ts_pen4_color']
     except KeyError:
         ts_pen1_color = "#272828"
-        ts_pen1_color = "#149beb"
-        ts_pen1_color = "#ced51a"
-        ts_pen1_color = "#da13a8"
+        ts_pen2_color = "#149beb"
+        ts_pen3_color = "#ced51a"
+        ts_pen4_color = "#da13a8"
 
     try:
         ts_pen1_width = mw.pm.profile['ts_pen1_width']
@@ -177,6 +181,7 @@ def ts_load():
     ts_menu_small_default.setChecked(ts_default_small_canvas)
     ts_menu_zen_mode.setChecked(ts_zen_mode)
     ts_menu_follow.setChecked(ts_follow)
+    ts_menu_pressure.setChecked(ts_pressure_sensitivity)
     ts_menu_dots.setChecked(ts_ConvertDotStrokes)
     if ts_state_on:
         ts_on()
@@ -416,6 +421,7 @@ def blackboard_js():
 var visible = """ + ts_default_VISIBILITY + """;
 var perfectFreehand = """ + ts_default_PerfFreehand +""";
 var convertDotStrokes = """ + str(ts_ConvertDotStrokes).lower() + """;
+var pressureSensitivity = """ + str(ts_pressure_sensitivity).lower() + """;
 var small_canvas = """ +  str(ts_default_small_canvas).lower() + """;
 var fullscreen_follow = """ + str(ts_follow).lower() + """;
 var calligraphy = """ + ts_default_Calligraphy + """;
@@ -988,15 +994,15 @@ var drawingWithPressurePenOnly = false; // hack for drawing with 2 main pointers
 function pointerDownLine(e) {
     wrapper.classList.add('nopointer');
 	if (!e.isPrimary || calligraphy || strokeDelete) { return; }
-	if (e.pointerType[0] == 'p') { drawingWithPressurePenOnly = true }
+	if (e.pointerType[0] == 'p' && pressureSensitivity) { drawingWithPressurePenOnly = true }
 	else if ( drawingWithPressurePenOnly) { return; }
     if(!isPointerDown){
         event.preventDefault();
         arrays_of_points.push([[
 			e.offsetX,
 			e.offsetY,
-            e.pointerType[0] == 'p' ? e.pressure : 2,
-			e.pointerType[0] == 'p' ? (1.0 + e.pressure * getPenColorAndWidthByIndex(activePenIndex)[1] * 2) : getPenColorAndWidthByIndex(activePenIndex)[1]]]);
+            (e.pointerType[0] == 'p' && pressureSensitivity) ? e.pressure : 2,
+			(e.pointerType[0] == 'p' && pressureSensitivity) ? (1.0 + e.pressure * getPenColorAndWidthByIndex(activePenIndex)[1] * 2) : getPenColorAndWidthByIndex(activePenIndex)[1]]]);
         var pen = getPenColorAndWidthByIndex(activePenIndex);
         line_type_history.push([perfectFreehand? 'P' :'L' ,arrays_of_points.length-1, pen[0], pen[1], pen[2]]);//Add new Simple or Perfect line marker to shared history
         start_drawing();
@@ -1010,8 +1016,8 @@ function pointerMoveLine(e) {
         arrays_of_points[arrays_of_points.length-1].push([
 			e.offsetX,
 			e.offsetY,
-            e.pointerType[0] == 'p' ? e.pressure : 2,
-			e.pointerType[0] == 'p' ? (1.0 + e.pressure * getPenColorAndWidthByIndex(activePenIndex)[1] * 2) : getPenColorAndWidthByIndex(activePenIndex)[1]]);
+            (e.pointerType[0] == 'p' && pressureSensitivity) ? e.pressure : 2,
+			(e.pointerType[0] == 'p' && pressureSensitivity) ? (1.0 + e.pressure * getPenColorAndWidthByIndex(activePenIndex)[1] * 2) : getPenColorAndWidthByIndex(activePenIndex)[1]]);
     }
 }
 
@@ -1024,8 +1030,8 @@ function pointerUpLine(e) {
         arrays_of_points[arrays_of_points.length-1].push([
 			e.offsetX,
 			e.offsetY,
-            e.pointerType[0] == 'p' ? e.pressure : 2,
-			e.pointerType[0] == 'p' ? (1.0 + e.pressure * getPenColorAndWidthByIndex(activePenIndex)[1] * 2) : getPenColorAndWidthByIndex(activePenIndex)[1]]);
+            (e.pointerType[0] == 'p' && pressureSensitivity) ? e.pressure : 2,
+			(e.pointerType[0] == 'p' && pressureSensitivity) ? (1.0 + e.pressure * getPenColorAndWidthByIndex(activePenIndex)[1] * 2) : getPenColorAndWidthByIndex(activePenIndex)[1]]);
     } 
 	stop_drawing();
     if(perfectFreehand) ts_redraw();
@@ -1600,6 +1606,16 @@ def ts_change_zen_mode_settings():
     ts_zen_mode = not ts_zen_mode
     ts_switch()
     ts_switch()
+
+@slot()
+def ts_change_pressure_sensitivity_settings():
+    """
+    Switch pressure sensitivity setting.
+    """
+    global ts_pressure_sensitivity
+    ts_pressure_sensitivity = not ts_pressure_sensitivity
+    execute_js("pressureSensitivity = " + str(ts_pressure_sensitivity).lower() + ";")
+    execute_js("if (typeof resize === 'function') { resize(); }")
     
 @slot()
 def ts_change_auto_hide_pointer_settings():
@@ -1660,7 +1676,7 @@ def ts_setup_menu():
     """
     Initialize menu. 
     """
-    global ts_menu_switch, ts_menu_dots, ts_menu_auto_hide, ts_menu_auto_hide_pointer, ts_menu_small_default, ts_menu_zen_mode, ts_menu_follow
+    global ts_menu_switch, ts_menu_dots, ts_menu_auto_hide, ts_menu_auto_hide_pointer, ts_menu_small_default, ts_menu_zen_mode, ts_menu_follow, ts_menu_pressure
 
     try:
         mw.addon_view_menu
@@ -1675,6 +1691,7 @@ def ts_setup_menu():
 
     ts_menu_switch = QAction("""&Enable Ankidraw""", mw, checkable=True)
     ts_menu_dots = QAction("""Convert &dot strokes on PF mode""", mw, checkable=True)
+    ts_menu_pressure = QAction("""Enable &pressure sensitivity""", mw, checkable=True)
     ts_menu_auto_hide = QAction("""Auto &hide toolbar when drawing""", mw, checkable=True)
     ts_menu_auto_hide_pointer = QAction("""Auto &hide pointer when drawing""", mw, checkable=True)
     ts_menu_follow = QAction("""&Follow when scrolling (faster on big cards)""", mw, checkable=True)
@@ -1708,6 +1725,7 @@ def ts_setup_menu():
 
     mw.addon_view_menu.addAction(ts_menu_switch)
     mw.addon_view_menu.addAction(ts_menu_dots)
+    mw.addon_view_menu.addAction(ts_menu_pressure)
     mw.addon_view_menu.addAction(ts_menu_auto_hide)
     mw.addon_view_menu.addAction(ts_menu_auto_hide_pointer)
     mw.addon_view_menu.addAction(ts_menu_follow)
@@ -1728,6 +1746,7 @@ def ts_setup_menu():
     ts_menu_pen4_width.triggered.connect(lambda: ts_change_pen_width(4))
     ts_menu_switch.triggered.connect(ts_switch)
     ts_menu_dots.triggered.connect(ts_dots)
+    ts_menu_pressure.triggered.connect(ts_change_pressure_sensitivity_settings)
     ts_menu_auto_hide.triggered.connect(ts_change_auto_hide_settings)
     ts_menu_auto_hide_pointer.triggered.connect(ts_change_auto_hide_pointer_settings)
     ts_menu_follow.triggered.connect(ts_change_follow_settings)
