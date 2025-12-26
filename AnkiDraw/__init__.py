@@ -1172,12 +1172,11 @@ document.addEventListener('keydown', function(e) {
 
 document.addEventListener('keyup', function(e) {
     // For hold mode, stop deleting when shift+d is released
-    if ((e.keyCode == 68 || e.key == "d") && TempDeleting) {
+    if ((e.keyCode == 68 || e.key == "d") && isDeleting) {
         finishDelete()
         exit_stroke_delete_mode();
     }
 });
-//TODO fixup name of sensitivity toggel and test?
 //TODO chinese mode?
 //TODO save draw info in cards
 document.addEventListener('keyup', function(e) {
