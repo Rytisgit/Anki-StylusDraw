@@ -40,15 +40,21 @@ BezierShape.prototype.copy = function() {
 BezierShape.prototype.draw = function(ctx) {
     var x = this.sections[0][0][0], //ew
         y = this.sections[0][0][1];
-    ctx.beginPath();
+    var path = new Path2D()
     ctx.moveTo(x,y);
     for(var i = 0; i < this.sections.length; i++) {
         var b = this.sections[i];
         ctx.bezierCurveTo(b[1][0],b[1][1],b[2][0],b[2][1],b[3][0],b[3][1]);
     }
     ctx.closePath();
-    
-    ctx.fill();
+        // Erase
+    var save = ctx.strokeStyle
+    switch_to_no_alpha(save)
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fill(path);
+    switch_back_to_correct_alpha(save)
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fill(path);
 };
 
 function Bone(points,offset) {
@@ -388,12 +394,21 @@ Bezier.prototype.getPoint = function(t) {
 Bezier.prototype.drawPlain = function(ctx) {
     if(this.order == 3) {
         var c = this.controlPoints;
-        ctx.beginPath();
-        ctx.moveTo(c[0][0],c[0][1]);
-        ctx.bezierCurveTo(c[1][0],c[1][1],c[2][0],c[2][1],c[3][0],c[3][1]);
-        ctx.stroke();
+        var path = new Path2D()
+
+        path.moveTo(c[0][0],c[0][1]);
+        path.bezierCurveTo(c[1][0],c[1][1],c[2][0],c[2][1],c[3][0],c[3][1]);
+
+
+        // Erase
+        var save = ctx.strokeStyle
+        switch_to_no_alpha(save)
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.stroke(path);
+        switch_back_to_correct_alpha(save)
+        ctx.globalCompositeOperation = "source-over";
+        ctx.stroke(path);
     }
-        
 };
 
 Bezier.prototype.getDerivativeVector = function(t) {
@@ -522,18 +537,26 @@ function drawBezier(curve,wid,wF,ctx) {
     }
     //Drawing the polygon
     var s = leftPoints[0];
-    ctx.beginPath();
-    ctx.moveTo(s[0],s[1]); //starting from start center
+    var path = new Path2D();
+    path.moveTo(s[0],s[1]); //starting from start center
     for(var i = 0; i < leftPoints.length; i++){
         var p = leftPoints[i];
-        ctx.lineTo(p[0],p[1]);
+        path.lineTo(p[0],p[1]);
     }
     for(var i = rightPoints.length-1; i >= 0; i--){
         var p = rightPoints[i];
-        ctx.lineTo(p[0],p[1]);
+        path.lineTo(p[0],p[1]);
     }
-    ctx.closePath();
-    ctx.fill();
+    path.closePath();
+    // Erase
+    var save = ctx.strokeStyle
+    switch_to_no_alpha(save)
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fill(path);
+
+    switch_back_to_correct_alpha(save)
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fill(path);
 }
 
 function drawBezierTransformed(p0,p1,curve,wid,wF,ctx) {
@@ -803,11 +826,20 @@ Stroke.prototype.drawPlain = function(ctx) {
     var x = this.segments[0].getStart()[0],
         y = this.segments[0].getStart()[1];
     ctx.moveTo(x,y);
+    var path = new Path2D();
     for(var i = 0; i < this.segments.length; i++) {
         var b = this.segments[i].controlPoints;
-        ctx.bezierCurveTo(b[1][0],b[1][1],b[2][0],b[2][1],b[3][0],b[3][1]);
+        path.bezierCurveTo(b[1][0],b[1][1],b[2][0],b[2][1],b[3][0],b[3][1]);
     }
-    ctx.stroke();      
+    // Erase
+    var save = ctx.strokeStyle
+    switch_to_no_alpha(save)
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.stroke(path);
+
+    switch_back_to_correct_alpha(save)
+    ctx.globalCompositeOperation = "source-over";
+    ctx.stroke(path);
 };
 
 Stroke.prototype.draw = function(width, ctx) {
@@ -1394,12 +1426,4 @@ function rotate(v,rad) {
 
 function midpoint(p1,p2,t) {
     return add(scale(p1,1-t),scale(p2,t));
-}
-
-
-function drawVector(vector,pos,ctx) {
-    ctx.beginPath();
-    ctx.moveTo(pos[0],pos[1]);
-    ctx.lineTo(pos[0]+vector[0],pos[1]+vector[1]);
-    ctx.stroke();
 }
