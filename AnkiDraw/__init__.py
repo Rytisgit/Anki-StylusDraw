@@ -556,13 +556,12 @@ function switch_stroke_delete_mode()
         ts_stroke_delete_button.className = '';
     }
 }
-TempDeleting = false
 function enter_stroke_delete_mode()
 {
     stop_drawing();
     reset_drawing_modes()
     strokeDelete = true;
-    TempDeleting = true;
+    isDeleting = true;
     if(strokeDelete || isDeleting)
     {
         ts_stroke_delete_button.className = 'active';
@@ -576,7 +575,7 @@ function exit_stroke_delete_mode()
     stop_drawing();
     reset_drawing_modes()
     strokeDelete = false;
-    TempDeleting = false
+    isDeleting = false
     if(strokeDelete || isDeleting)
     {
         ts_stroke_delete_button.className = 'active';
