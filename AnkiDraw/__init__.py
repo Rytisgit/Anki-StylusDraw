@@ -174,7 +174,10 @@ def blackboard_html():
               onclick="ts_undo();" >
         <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4.05 11a8 8 0 1 1 .5 4m-.5 5v-5h5"></path></svg>
         </button>
-
+        <button id="ts_redo_button" title="Redo the last stroke (Alt + y)"
+              onclick="ts_redo();" >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5"></path></svg>
+        </button>
         <button class="active" title="Clean canvas (. dot)"
               onclick="add_clear_marker();" >
         <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h16"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path><path d="M10 12l4 4m0 -4l-4 4"></path></svg>
@@ -423,6 +426,7 @@ var canvas = document.getElementById('main_canvas');
 var wrapper = document.getElementById('canvas_wrapper');
 var optionBar = document.getElementById('pencil_button_bar');
 var ts_undo_button = document.getElementById('ts_undo_button');
+var ts_redo_button = document.getElementById('ts_redo_button');
 var ctx = canvas.getContext('2d');
 var secondary_canvas = document.getElementById('secondary_canvas');
 var secondary_ctx = secondary_canvas.getContext('2d');
@@ -444,6 +448,7 @@ var ts_switch_pen4_button_path = document.querySelector('#ts_switch_pen4_button 
 // Arrays to save point values from strokes
 var perfect_cache = [ ];
 var lineHistory = [ ] // contains history of currentAction Items, defined below
+var redoStack = [ ]
 
 // Current stroke in progress
 var currentAction = {
@@ -794,6 +799,8 @@ function ts_undo(){
 	stop_drawing();
     if(lineHistory.length>0){
         var poppedAction = lineHistory.pop()
+        redoStack.push(poppedAction)
+        ts_redo_button.className = "active";
         switch (poppedAction.type) {
             case 'C'://Calligraphy
                 perfect_cache[lineHistory.length] = null;
@@ -808,13 +815,11 @@ function ts_undo(){
                 break;
             default://how did you get here??
                 break;
+        }
     }
-    }
-    
-    
+
     if(!lineHistory.length)
     {
-        clear_canvas()
         ts_undo_button.className = ""
     }
     else
@@ -823,50 +828,32 @@ function ts_undo(){
     }
     
 }
-// function ts_undo(){
-//     stop_drawing();
-//     if (strokes_data.length < 1) return;
+function ts_redo() {
+    stop_drawing();
+    if (redoStack.length < 1) return;
     
-//     var undone_stroke = strokes_data.pop();
-//     redo_stack.push(undone_stroke);
-
-//     if (undone_stroke.tool === 'eraser' && undone_stroke.erasedIndices) {
-//         undone_stroke.erasedIndices.forEach(function(index) {
-//             if (strokes_data[index]) {
-//                 strokes_data[index].visible = true;
-//             }
-//         });
-//     }
-
-//     ts_redo_button.className = "active";
-//     ts_redraw();
-//     if (strokes_data.length === 0) {
-//         ts_undo_button.className = "";
-//     }
-// }
-// TODO add redo functionality
-// function ts_redo() {
-//     stop_drawing();
-//     if (redo_stack.length < 1) return;
+    var redoAction = redoStack.pop();
+    add_action_to_history(redoAction)
+    ts_undo_button.className = "active";
+    switch (redoAction.type) {
+        case 'C'://Calligraphy
+            break;
+        case 'L'://Simple Lines
+            break;
+        case 'D'://Delete Stroke Lines
+            poppedAction.deletedList.forEach( deletedIndex => { lineHistory[deletedIndex].visible = false } )
+            break;
+        case 'X'://Delete Stroke Lines
+            break;
+        default://how did you get here??
+            break;
+    }
     
-//     var redone_stroke = redo_stack.pop();
-//     strokes_data.push(redone_stroke);
-
-//     if (redone_stroke.tool === 'eraser' && redone_stroke.erasedIndices) {
-//         redone_stroke.erasedIndices.forEach(function(index) {
-//             if (strokes_data[index]) {
-//                 strokes_data[index].visible = false;
-//             }
-//         });
-//     }
-
-//     ts_undo_button.className = "active";
-//     ts_redraw();
-//     if (redo_stack.length === 0) {
-//         ts_redo_button.className = "";
-//     }
-// }
-
+    ts_redraw();
+    if (redoStack.length === 0) {
+        ts_redo_button.className = "";
+    }
+}
 
 function ts_redraw() {
 	pleaseRedrawEverything = true;
@@ -881,8 +868,8 @@ function clear_canvas()
 {
 	//don't continue to put points into an empty array(pointermove) if clearing while drawing on the canvas
 	stop_drawing();
-    lineHistory = [];
-    perfect_cache = [];
+    reset_history();
+    reset_redo()
 	ts_clear();
 }
 
@@ -899,6 +886,17 @@ function add_action_to_history(action){
     lineHistory.push(action)
 }
 
+function reset_redo(){
+    redo_stack = [];
+    ts_redo_button.className = "";
+}
+
+function reset_history(){
+    lineHistory = [];
+    perfect_cache = [];
+    ts_undo_button.className = "";
+}
+
 function stop_drawing() {
 	isPointerDown = false;
 	drawingWithPressurePenOnly = false;
@@ -906,6 +904,7 @@ function stop_drawing() {
 
 function start_drawing() {
     isPointerDown = true;
+    reset_redo()
 }
 
 function draw_last_line_segment() {
@@ -1199,11 +1198,11 @@ document.addEventListener('keyup', function(e) {
 		e.preventDefault();
         ts_undo();
     }
-    // // alt + y
-    // if ((e.keyCode == 89 || e.keyCode == "y") && e.altKey) {
-    //     e.preventDefault();
-    //     ts_redo();
-    // }
+    // alt + y
+    if ((e.keyCode == 89 || e.keyCode == "y") && e.altKey) {
+        e.preventDefault();
+        ts_redo();
+    }
     // /
     if (e.key === ".") {
         add_clear_marker();
