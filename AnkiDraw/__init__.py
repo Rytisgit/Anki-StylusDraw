@@ -442,13 +442,8 @@ var ts_switch_pen3_button_path = document.querySelector('#ts_switch_pen3_button 
 var ts_switch_pen4_button_path = document.querySelector('#ts_switch_pen4_button > svg > path');
 
 // Arrays to save point values from strokes
-var arrays_of_points = [ ];
-var arrays_of_calligraphy_points = [ ];
-var arrays_of_points_deleted = [ ];//sparse array of indexes to mark whether an specific stroke is deleted
-var arrays_of_calligraphy_points_deleted = [ ];//sparse array of indexes to mark whether an specific stroke is deleted
-var stroke_delete_list = [ ];//array of array of objects{array_of_x_deleted, index}
-var line_type_history = [ ];
 var perfect_cache = [ ];
+var lineHistory = [ ] // contains history of currentAction Items, defined below
 
 // Current stroke in progress
 var currentAction = {
@@ -457,8 +452,8 @@ var currentAction = {
     width: '',
     opacity: '',
     visible: true,
-    type: null, // 'simple', 'perfect', or 'calligraphy'
-    isComplete: false
+    type: '', // 'simple' 'L', 'perfect' 'P', 'calligraphy' 'C', Delete 'D', Clear 'X'
+    deletedList: [] // used only for delete actions
 };
 
 var index = 0;
@@ -797,24 +792,19 @@ function switch_back_to_correct_alpha(line_color){
 
 function ts_undo(){
 	stop_drawing();
-    if(!line_type_history.count>0){
-        switch (line_type_history.pop()[0]) {
+    if(lineHistory.length>0){
+        var poppedAction = lineHistory.pop()
+        switch (poppedAction.type) {
             case 'C'://Calligraphy
-                strokes.pop();
-                arrays_of_calligraphy_points.pop();
+                perfect_cache[lineHistory.length] = null;
                 break;
             case 'L'://Simple Lines
-                var index = arrays_of_points.length-1
-                arrays_of_points.pop()
-                perfect_cache[index] = null;
+                perfect_cache[lineHistory.length] = null;
                 break;
             case 'D'://Delete Stroke Lines
-                stroke_delete_list.pop().forEach(
-                    deleted => {
-                        if(deleted[0]=="C")arrays_of_calligraphy_points_deleted[deleted[1]]=false;
-                        if(deleted[0]=="L")arrays_of_points_deleted[deleted[1]]=false;
-                    }
-                )
+                poppedAction.deletedList.forEach( deletedIndex => { lineHistory[deletedIndex].visible = true } )
+                break;
+            case 'X'://Delete Stroke Lines
                 break;
             default://how did you get here??
                 break;
@@ -822,7 +812,7 @@ function ts_undo(){
     }
     
     
-    if(!line_type_history.length)
+    if(!lineHistory.length)
     {
         clear_canvas()
         ts_undo_button.className = ""
@@ -891,15 +881,8 @@ function clear_canvas()
 {
 	//don't continue to put points into an empty array(pointermove) if clearing while drawing on the canvas
 	stop_drawing();
-    arrays_of_points = [];
-    strokes = [];
-    arrays_of_delete_points = [];
-    arrays_of_calligraphy_points = [];
-    arrays_of_points_deleted = [];
-    arrays_of_calligraphy_points_deleted = [];
-    stroke_delete_list = [];
+    lineHistory = [];
     perfect_cache = [];
-    line_type_history = [];
 	ts_clear();
 }
 
@@ -924,11 +907,11 @@ var nextStroke = 0;
 var p1,p2,p3;
 
 function is_last_path_and_currently_drawn(i){
-    return (isPointerDown && line_type_history.length-1 <= i)//the path is complete unless its the last of the array and the pointer is still down
+    return (isPointerDown && lineHistory.length-1 <= i)//the path is complete unless its the last of the array and the pointer is still down
 }
 
 function all_drawing_finished(i){
-    return (!isPointerDown && line_type_history.length-1 >= i)//the path is complete unless its the last of the array and the pointer is still down
+    return (!isPointerDown && lineHistory.length-1 >= i)//the path is complete unless its the last of the array and the pointer is still down
 }
 
 async function draw_path_at_some_point_async(startX, startY, midX, midY, endX, endY, lineWidth) {
@@ -957,36 +940,36 @@ async function draw_upto_latest_point_async(startLine, startPoint, startStroke){
         startPoint = 0;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	}
-    for (let index = line_type_history.length-1; index >=0; index--) {
-        const element = line_type_history[index];
-        if(element[0]=='X')if(index>startLine)index = startLine
+    for (let index = lineHistory.length-1; index > 0; index--) {
+        if(lineHistory[index].type == 'X'){
+            if(index>startLine)index = startLine
+            break;
+        }
     }
-    for(var i = startLine; i < line_type_history.length; i++){ //Draw
-        line_index = line_type_history[i][1]
-        line_color = line_type_history[i][2]
-        line_width = line_type_history[i][3]
-        line_opacity = line_type_history[i][4]
-        update_line_draw_settings(line_color, line_width, line_opacity)
-        switch (line_type_history[i][0]) {
+    for(var i = startLine; i < lineHistory.length; i++){ //Draw
+        actionToDraw = lineHistory[i]
+        if(!actionToDraw.visible) {
+            nextPoint = 0;
+            continue;
+        }
+
+        update_line_draw_settings(actionToDraw.color, actionToDraw.width, actionToDraw.opacity)
+        switch (actionToDraw.type) {
             case 'C'://Calligraphy
-                if(!arrays_of_calligraphy_points_deleted[line_index]){
-                    strokes[line_index].draw(line_width, ctx);
-                }
+                    var calligraphyStroke = !perfect_cache[i] ? new Stroke(fitStroke(actionToDraw.points)) : perfect_cache[i]
+                    perfect_cache[i] = calligraphyStroke
+                    calligraphyStroke.draw(actionToDraw.width, ctx);
                 break;
             case 'L'://Simple Lines
-                if(arrays_of_points_deleted[line_index]){//skip drawing this line on this go around
-                    nextPoint = 0;
-                    continue;
-                }
                 ///0,0,0; 0,0,1; 0,1,2 or x+1,x+2,x+3
                 //take the 2 previous points in addition to current one at the start of the loop.
-                p2 = arrays_of_points[line_index][startPoint > 1 ? startPoint-2 : 0];
-                p3 = arrays_of_points[line_index][startPoint > 0 ? startPoint-1 : 0];
-                for(var j = startPoint; j < arrays_of_points[line_index].length; j++){
+                p2 = actionToDraw.points[startPoint > 1 ? startPoint-2 : 0];
+                p3 = actionToDraw.points[startPoint > 0 ? startPoint-1 : 0];
+                for(var j = startPoint; j < actionToDraw.points.length; j++){
                     nextPoint = j + 1;
                     p1 = p2;
                     p2 = p3;
-                    p3 = arrays_of_points[line_index][j];
+                    p3 = actionToDraw.points[j];
                     var save = ctx.strokeStyle
                     switch_to_no_alpha(save)
                     ctx.globalCompositeOperation = "destination-out";
@@ -996,28 +979,23 @@ async function draw_upto_latest_point_async(startLine, startPoint, startStroke){
                     ctx.globalCompositeOperation = "source-over";
                     draw_path_at_some_point_async(p1[0],p1[1],p2[0],p2[1],p3[0],p3[1],p3[3]);
                 }
-
                 
                 break;
             case 'P'://Perfect Lines
-                    if(arrays_of_points_deleted[line_index]){
-                        nextPoint = 0;
-                        continue;
-                    }
-                    var path = !perfect_cache[line_index] ? new Path2D(
-                                getFreeDrawSvgPath(
-                                    arrays_of_points[line_index],
-                                    line_width,
-                                    true)) : perfect_cache[line_index]
-                    perfect_cache[line_index] = path
-                    var save = ctx.strokeStyle
-                    switch_to_no_alpha(save)
-                    ctx.globalCompositeOperation = "destination-out";
-                    ctx.fill(path);
+                var path = !perfect_cache[i] ? new Path2D(
+                            getFreeDrawSvgPath(
+                                actionToDraw.points,
+                                actionToDraw.width,
+                                true)) : perfect_cache[i]
+                perfect_cache[i] = path
+                var save = ctx.strokeStyle
+                switch_to_no_alpha(save)
+                ctx.globalCompositeOperation = "destination-out";
+                ctx.fill(path);
 
-                    switch_back_to_correct_alpha(save)
-                    ctx.globalCompositeOperation = "source-over";
-                    ctx.fill(path);
+                switch_back_to_correct_alpha(save)
+                ctx.globalCompositeOperation = "source-over";
+                ctx.fill(path);
                 break;
             case 'D'://Delete Stroke Lines
                 break;
@@ -1027,30 +1005,30 @@ async function draw_upto_latest_point_async(startLine, startPoint, startStroke){
                 break;
         }
         //post loop cleanup
-        if(all_drawing_finished(line_index)){
-            nextLine = line_type_history.length;
+        if(all_drawing_finished(i)){
+            nextLine = lineHistory.length;
             nextPoint = 0;
         }
         else{
-            if(line_type_history.length == 0){
+            if(lineHistory.length == 0){
                 nextLine = 0;
             }
             else{
-                nextLine = line_type_history.length-1;
+                nextLine = lineHistory.length-1;
             }
         }
     }
     if(!strokeDelete)reset_to_main_pen_settings()
     
 	if (fullRedraw) {//finished full redraw, now can unset redraw all flag so no more full redraws until necessary
-    pleaseRedrawEverything = false;
-	fullRedraw = false;
-    nextPoint = strokes.length == 0 ? 0 : nextPoint;//reset next point if out of lines
+        pleaseRedrawEverything = false;
+        fullRedraw = false;
+        nextPoint = lineHistory.length == 0 ? 0 : nextPoint;//reset next point if out of lines
 
-    if(fullClear){// start again from 0.
-        nextLine = 0;
-        fullClear = false;
-    }
+        if(fullClear){// start again from 0.
+            nextLine = 0;
+            fullClear = false;
+        }
 	}
 }
 
@@ -1094,7 +1072,7 @@ function pointerDownLine(e) {
             width: pen[1],
             opacity: pen[2],
             visible: true,
-            type: perfectFreehand ? 'P' : 'L', // 'simple', 'perfect', or 'calligraphy'
+            type: perfectFreehand ? 'P' : 'L', // 'simple', 'perfect'
         };
         currentAction.points.push([
 			e.offsetX,
@@ -1152,8 +1130,8 @@ function pointerUpLine(e) {
             (e.pointerType[0] == 'p' && pressureSensitivity) ? e.pressure : 2,
 			(e.pointerType[0] == 'p' && pressureSensitivity) ? (1.0 + e.pressure * currentAction.width * 2) : currentAction.width]);
 
-        arrays_of_points.push(currentAction.points)
-        line_type_history.push([currentAction.type ,arrays_of_points.length-1, currentAction.color, currentAction.width, currentAction.opacity]);//Add new Simple or Perfect line marker to shared history
+        lineHistory.push(currentAction)
+
         if(perfectFreehand){
             const box = calculateClearBox(currentAction.points);
             secondary_ctx.clearRect(box.x, box.y, box.width, box.height);
@@ -1335,26 +1313,18 @@ function finishDelete(){
     secondary_ctx.strokeStyle = pen[0] // active pen Color;
     secondary_ctx.fillStyle = pen[0] //active pen Color;
     secondary_ctx.lineWidth = pen[1] //active pen Color;
-    points = currentAction.points;
-    lineDeleted = false;
     marked_lines = []
-    for(var i = 0; i< arrays_of_points.length; i++){
-        if(doLinesIntersect(arrays_of_points[i], points)){
-            arrays_of_points_deleted[i]=true;//mark as deleted
-            marked_lines.push(["L", i])//add reference for easy undo
-            lineDeleted = true;
+    for (let lineIndex = 0; lineIndex < lineHistory.length; lineIndex++) {
+        const element = lineHistory[lineIndex];
+        if(!element.points || !element.type == 'D' || !element.visible) continue;
+        if(doLinesIntersect(element.points, currentAction.points)){
+            element.visible = false;//mark as deleted
+            marked_lines.push(lineIndex)//add reference for easy undo
         }
     }
-    for(var i = 0; i< arrays_of_calligraphy_points.length; i++){
-        if(doLinesIntersect(arrays_of_calligraphy_points[i], points)){
-            lineDeleted = true;
-            arrays_of_calligraphy_points_deleted[i]=true;//mark as deleted
-            marked_lines.push(["C", i])//add reference for easy undo
-        }
-    }
-    if(lineDeleted){
-        stroke_delete_list.push(marked_lines);//add list of lines which were deleted to the list
-        line_type_history.push(['D',stroke_delete_list.length-1]);//Add new Deleted line marker to shared history
+    if(marked_lines.length){
+        currentAction.deletedList = marked_lines;//add list of lines which were deleted to the list
+        lineHistory.push(currentAction);
     }
     currentAction = {};// clear the array on pointer up so it doesnt enter new lines when clicking on buttons
     secondary_ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);//clear the guide line in second canvas
@@ -1443,9 +1413,6 @@ WEIGHT = 15;
 MIN_MOUSE_DIST = 5;
 SPLIT_THRESHOLD = 8;
 SQUARE_SIZE = 300;
-    
-//--- variables ---//
-strokes = [];
 
 function drawCurrentPath() {
     secondary_ctx.beginPath();
@@ -1490,12 +1457,7 @@ function pointerUpCaligraphy(e) {
     stop_drawing();
     if (!e.isPrimary || !calligraphy || !currentAction.points || !currentAction.points.length) { return; }
     
-    var curves = fitStroke(currentAction.points);
-    var pen = getPenColorAndWidthByIndex(activePenIndex);
-    arrays_of_calligraphy_points.push(currentAction.points);
-    line_type_history.push([currentAction.type, arrays_of_calligraphy_points.length-1, currentAction.color, currentAction.width, currentAction.opacity]);//Add new Caligragraphy line marker to shared history
-    strokes.push(new Stroke(curves));
-    
+    lineHistory.push(currentAction);
     currentAction = {};// clear the array on pointer up so it doesnt enter new lines when clicking on buttons
     secondary_ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);//clear the guide line in second canvas
 };
