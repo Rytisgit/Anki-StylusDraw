@@ -378,7 +378,7 @@ function pointerDownLine(e) {
 	if (e.pointerType[0] == 'p') { drawingWithPressurePenOnly = true }
 	else if ( drawingWithPressurePenOnly) { return; }
     if(!isPointerDown){
-        event.preventDefault();
+        e.preventDefault();
         arrays_of_points.push([[
 			e.offsetX,
 			e.offsetY,
@@ -491,7 +491,7 @@ function drawCurrentPath() {
 
 function pointerDownCaligraphy(e) {
     if (!e.isPrimary || !calligraphy) { return; }
-    event.preventDefault();//don't paint anything when clicking on buttons, especially for undo to work
+    e.preventDefault();//don't paint anything when clicking on buttons, especially for undo to work
     line_type_history.push('C');//Add new Caligragraphy line marker to shared history
     start_drawing();
 };

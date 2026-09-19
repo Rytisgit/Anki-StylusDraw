@@ -1447,7 +1447,7 @@ function pointerDownLine(e) {
 	else if ( drawingWithPressurePenOnly) { return; }
     var pen = getPenColorAndWidthByIndex(activePenIndex);
     if(!isPointerDown){
-        event.preventDefault();
+        e.preventDefault();
         currentAction = {
             points: [],
             color: pen[0],
@@ -1663,7 +1663,7 @@ function pointerDownStrokeDelete(e) {
     wrapper.classList.add('nopointer');
     if (!e.isPrimary || !strokeDelete) { return; }
     submitCurrentText()
-    event.preventDefault();
+    e.preventDefault();
     // Use solid red for delete mode, not transparent
     var pen = getPenColorAndWidthByIndex(activePenIndex);
     currentAction = {
@@ -1814,7 +1814,7 @@ function drawCurrentPath() {
 function pointerDownCaligraphy(e) {
     wrapper.classList.add('nopointer');
     if (!e.isPrimary || !calligraphy) { return; }
-    event.preventDefault();//don't paint anything when clicking on buttons, especially for undo to work
+    e.preventDefault();//don't paint anything when clicking on buttons, especially for undo to work
     var pen = getPenColorAndWidthByIndex(activePenIndex);
     currentAction = {
         points: [],
