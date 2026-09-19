@@ -1328,8 +1328,12 @@ function submitCurrentText() {
 function pointerDownLineText(e) {
     if (!e.isPrimary || !textWriting) { return; }
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // Account for canvas scaling (DPR) and CSS size
+    // The canvas has been scaled with ctx.scale(dpr, dpr), so we need
+    // to divide by dpr to get the logical coordinates used by the drawing context
+    const dpr = window.devicePixelRatio || 1;
+    const scaleX = (canvas.width / dpr) / rect.width;
+    const scaleY = (canvas.height / dpr) / rect.height;
     
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
